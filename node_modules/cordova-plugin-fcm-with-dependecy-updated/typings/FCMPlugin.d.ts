@@ -42,6 +42,12 @@ export declare class FCMPlugin {
      */
     createNotificationChannel(channelConfig: IChannelConfiguration): Promise<void>;
     /**
+     * This method deletes the InstanceId, revoking all tokens.
+     *
+     * @returns {Promise<void>} Async call to native implementation
+     */
+    deleteInstanceId(): Promise<void>;
+    /**
      * Gets ios device's current APNS token
      *
      * @returns {Promise<string>} Returns a Promise that resolves with the APNS token
@@ -62,7 +68,7 @@ export declare class FCMPlugin {
      */
     getToken(): Promise<string>;
     /**
-     * Checking for permissions on iOS. On android, it always returns `true`.
+     * Checking for permissions.
      *
      * @returns {Promise<boolean | null>} Returns a Promise of:
      * - true: push was allowed (or platform is android)

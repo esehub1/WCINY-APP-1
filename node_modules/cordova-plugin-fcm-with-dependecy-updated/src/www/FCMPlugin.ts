@@ -5,6 +5,11 @@ import type { IDisposable } from './IDisposable'
 import { execAsPromise } from './execAsPromise'
 import { asDisposableListener } from './eventAsDisposable'
 import { bridgeNativeEvents } from './bridgeNativeEvents'
+declare var window: {
+    cordova: {
+        platformId: string
+    }
+}
 
 /**
  * @name FCM
@@ -68,6 +73,15 @@ export class FCMPlugin {
     }
 
     /**
+     * This method deletes the InstanceId, revoking all tokens.
+     *
+     * @returns {Promise<void>} Async call to native implementation
+     */
+    public deleteInstanceId(): Promise<void> {
+        return execAsPromise('deleteInstanceId')
+    }
+
+    /**
      * Gets ios device's current APNS token
      *
      * @returns {Promise<string>} Returns a Promise that resolves with the APNS token
@@ -99,7 +113,7 @@ export class FCMPlugin {
     }
 
     /**
-     * Checking for permissions on iOS. On android, it always returns `true`.
+     * Checking for permissions.
      *
      * @returns {Promise<boolean | null>} Returns a Promise of:
      * - true: push was allowed (or platform is android)
@@ -107,9 +121,9 @@ export class FCMPlugin {
      * - null: still not answered, recommended checking again later.
      */
     public hasPermission(): Promise<boolean> {
-        return window.cordova.platformId !== 'ios'
-            ? Promise.resolve(true)
-            : execAsPromise('hasPermission')
+        return window.cordova.platformId === 'ios'
+            ? execAsPromise('hasPermission')
+            : execAsPromise('hasPermission').then((value) => !!value)
     }
 
     /**

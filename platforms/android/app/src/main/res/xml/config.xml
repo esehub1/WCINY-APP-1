@@ -61,7 +61,7 @@
     <name>WCINY</name>
     <description>Winners Chapel - NY</description>
     <author email="hello@7thcolonnade.com" href="http://7thcolonnade.com/">7th Colonnade Dev Team</author>
-    <content original-src="index.html" src="http://localhost:8100" />
+    <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
