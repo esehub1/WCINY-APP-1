@@ -30,3 +30,13 @@ rm -rf node_modules package-lock.json && npm install
 Quick notes:
 - There are temporary legacy npm scripts in `package.json`: `start:legacy` and `test:legacy`. These run the build or tests with `NODE_OPTIONS=--openssl-legacy-provider` for environments where OpenSSL3 causes failures.
 - Long-term: upgrade webpack/@angular-devkit to versions compatible with Node 20/OpenSSL3 or update CI to use Node 18.
+
+Temporary local middleware guard
+--------------------------------
+
+During investigation a runtime crash in the dev middleware was mitigated by adding a defensive guard in `node_modules/webpack-dev-middleware/lib/util.js` to avoid reading `req.headers.range` when `req.headers` is undefined. This is a local, temporary fix — do not rely on it long-term. Preferred remediation paths:
+
+- Upgrade `webpack-dev-middleware` / `webpack` / `@angular-devkit/build-angular` to versions compatible with Node 20/OpenSSL3 so the defensive guard is unnecessary.
+- If upgrading is not possible immediately, leave a note in the PR documenting the local change so reviewers are aware; revert the local edit after upgrading dependencies.
+
+If you want, I can create a follow-up branch to attempt the dependency upgrades and run the test/dev build in CI to validate removing the guard.
