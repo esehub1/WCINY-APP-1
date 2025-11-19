@@ -41,7 +41,7 @@ describe('AppComponent', () => {
     expect(platformSpy.ready).toHaveBeenCalled();
     await platformReadySpy;
     expect(statusBarSpy.styleDefault).toHaveBeenCalled();
-    expect(splashScreenSpy.hide).toHaveBeenCalled();
+    // App no longer calls SplashScreen.hide() (commented out in code); don't assert it
   });
 
   it('should have menu labels', async () => {
@@ -49,9 +49,11 @@ describe('AppComponent', () => {
     await fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-label');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].textContent).toContain('Inbox');
-    expect(menuItems[1].textContent).toContain('Outbox');
+    // Match the tests to the current appPages length and titles
+    const comp = fixture.debugElement.componentInstance as AppComponent;
+    expect(menuItems.length).toEqual(comp.appPages.length);
+    expect(menuItems[0].textContent).toContain('Home');
+    expect(menuItems[1].textContent).toContain('WOFBI');
   });
 
   it('should have urls', async () => {
@@ -59,9 +61,10 @@ describe('AppComponent', () => {
     await fixture.detectChanges();
     const app = fixture.nativeElement;
     const menuItems = app.querySelectorAll('ion-item');
-    expect(menuItems.length).toEqual(12);
-    expect(menuItems[0].getAttribute('ng-reflect-router-link')).toEqual('/folder/Inbox');
-    expect(menuItems[1].getAttribute('ng-reflect-router-link')).toEqual('/folder/Outbox');
+    const comp = fixture.debugElement.componentInstance as AppComponent;
+    expect(menuItems.length).toEqual(comp.appPages.length);
+    expect(menuItems[0].getAttribute('ng-reflect-router-link')).toEqual('/tabs');
+    expect(menuItems[1].getAttribute('ng-reflect-router-link')).toEqual('/wofbi');
   });
 
 });
