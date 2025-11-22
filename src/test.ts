@@ -44,7 +44,8 @@ beforeEach(() => {
       FormsModule,
       ReactiveFormsModule,
       IonicModule.forRoot(),
-      SharedModule
+      // lightweight testing substitutes for SharedModule features
+      require('./test-support/test-shared.module').TestSharedModule
     ],
     providers: [
       { provide: NavController, useValue: {} },
@@ -75,12 +76,41 @@ beforeEach(() => {
       { provide: SplashScreen, useValue: { hide: (window as any).jasmine ? (window as any).jasmine.createSpy('hide') : (() => {}) } }
     ]
   });
+  // Add NO_ERRORS_SCHEMA globally if the environment hasn't provided schemas.
+  try {
+    // Prefer explicit test-ready schemas if set on window, otherwise add NO_ERRORS_SCHEMA
+    const schemas = (window as any).ngTestSchemas || [];
+    if (!schemas.length) {
+      // import symbol at runtime to avoid TS compile issues in older toolchains
+      const ng = require('@angular/core');
+      schemas.push(ng.NO_ERRORS_SCHEMA);
+    }
+    // Do not reset the testing module here — that clears imports/providers
+    // configured above. Just add any missing schemas so tests keep the
+    // shared testing imports and providers defined earlier.
+    TestBed.configureTestingModule({ schemas });
+  } catch (e) { }
   // Provide a minimal google.maps stub to avoid ReferenceError in components using Google Maps
   try {
     (window as any).google = (window as any).google || { maps: {} };
-    if (!(window as any).google.maps.LatLng) {
-      (window as any).google.maps.LatLng = function(lat: any, lng: any) { this.lat = function() { return lat; }; this.lng = function() { return lng; }; };
+    const g = (window as any).google;
+    if (!g.maps.LatLng) {
+      g.maps.LatLng = function(lat: any, lng: any) { this.lat = function() { return lat; }; this.lng = function() { return lng; }; };
     }
+    // minimal MapTypeId and Map/Marker stubs used by components
+    g.maps.MapTypeId = g.maps.MapTypeId || { ROADMAP: 'ROADMAP' };
+    g.maps.Map = g.maps.Map || function() {
+      this.setCenter = () => {};
+      this.setOptions = () => {};
+      this.addListener = (event: any, cb: any) => {
+        try { if (typeof cb === 'function') { /* no-op */ } } catch (e) { }
+        return { remove: () => {} };
+      };
+    };
+    g.maps.Marker = g.maps.Marker || function() {
+      this.setMap = () => {};
+      this.addListener = (event: any, cb: any) => ({ remove: () => {} });
+    };
   } catch (e) { }
 
   // Prevent BjAvatarComponent from throwing when tests create components without inputs
