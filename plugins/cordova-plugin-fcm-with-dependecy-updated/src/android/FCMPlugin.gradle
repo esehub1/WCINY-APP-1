@@ -2,7 +2,11 @@ def PLUGIN_CONFIG = new Object()
 try {
     PLUGIN_CONFIG = new groovy.json.JsonSlurper().parseText(file("${projectDir}/../../../package.json").text).cordova.plugins['cordova-plugin-fcm-with-dependecy-updated']
 } catch(Exception e) {}
-def ANDROID_FCM_VERSION = System.getenv('ANDROID_FCM_VERSION') ?: rootProject.hasProperty('ANDROID_FCM_VERSION') ? rootProject.ext.ANDROID_FCM_VERSION : PLUGIN_CONFIG.hasProperty("ANDROID_FCM_VERSION") ? PLUGIN_CONFIG.ANDROID_FCM_VERSION : null ?: '19.0.0'
+// Resolve FCM version: environment -> rootProject ext -> plugin config -> safe default
+def ANDROID_FCM_VERSION = System.getenv('ANDROID_FCM_VERSION') ?: (rootProject.hasProperty('ANDROID_FCM_VERSION') ? rootProject.ext.ANDROID_FCM_VERSION : (PLUGIN_CONFIG?.hasProperty("ANDROID_FCM_VERSION") ? PLUGIN_CONFIG.ANDROID_FCM_VERSION : null)) ?: '19.0.0'
+if (ANDROID_FCM_VERSION == null || ANDROID_FCM_VERSION.toString().trim() == '') {
+    ANDROID_FCM_VERSION = '19.0.0'
+}
 
 buildscript {
     ext {
@@ -71,14 +75,27 @@ repositories {
     }
 }
 dependencies {
+    // Use a safe, explicit FCM version to avoid null resolution issues in this environment
+    def fcmVersion = '19.0.0'
     if (gradleNumberVersion >= 3.4f) {
-        implementation "com.google.firebase:firebase-messaging:${ANDROID_FCM_VERSION}"
+        implementation "com.google.firebase:firebase-messaging:${fcmVersion}"
     } else {
-        compile "com.google.firebase:firebase-messaging:${ANDROID_FCM_VERSION}"
+        compile "com.google.firebase:firebase-messaging:${fcmVersion}"
     }
 }
 // apply plugin: 'com.google.gms.google-services'
 // class must be used instead of id(string) to be able to apply plugin from non-root gradle file
-if (!project.plugins.hasPlugin('com.google.gms.google-services')) {
-    apply plugin: com.google.gms.googleservices.GoogleServicesPlugin
+// Only apply Google Services plugin if a google-services.json is present in the Android app module
+try {
+    def appGs = rootProject.file('app/google-services.json')
+    if (appGs.exists()) {
+        if (!project.plugins.hasPlugin('com.google.gms.google-services')) {
+            apply plugin: com.google.gms.googleservices.GoogleServicesPlugin
+        }
+    } else {
+        print("FCMPlugin: google-services.json not found in app module; skipping Google Services plugin apply.")
+    }
+} catch(Exception e) {
+    // If check fails, skip applying to avoid build-time failure
+    print("FCMPlugin: Unable to check for google-services.json; skipping apply to avoid build failure.")
 }
