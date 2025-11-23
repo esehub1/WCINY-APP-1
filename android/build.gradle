@@ -1,4 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+//file:noinspection GrDeprecatedAPIUsage
+//file:noinspection GrDeprecatedAPIUsage
 
 buildscript {
     
@@ -16,6 +18,10 @@ buildscript {
 }
 
 apply from: "variables.gradle"
+
+// Ensure plugin version fallbacks are available for plugins that read them from root ext
+ext.ANDROID_FCM_VERSION = ext.has('ANDROID_FCM_VERSION') ? ext.ANDROID_FCM_VERSION : '21.0.0'
+ext.ANDROID_FIREBASE_BOM_VERSION = ext.has('ANDROID_FIREBASE_BOM_VERSION') ? ext.ANDROID_FIREBASE_BOM_VERSION : '26.0.0'
 
 allprojects {
     repositories {

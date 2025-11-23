@@ -69,14 +69,15 @@ dependencies {
 // Only apply Google Services plugin if a google-services.json is present in the Android app module
 try {
     def appGs = rootProject.file('app/google-services.json')
-    if (appGs.exists()) {
+    // Only apply the Google Services plugin when building the app module itself.
+    if (appGs.exists() && (project.name == 'app' || project.path == ':app')) {
         if (!project.plugins.hasPlugin('com.google.gms.google-services')) {
             apply plugin: com.google.gms.googleservices.GoogleServicesPlugin
         }
     } else {
-        print("FCMPlugin: google-services.json not found in app module; skipping Google Services plugin apply.")
+        print("FCMPlugin: google-services.json not found in app module or current project is not 'app'; skipping Google Services plugin apply for project: ${project.name}.")
     }
 } catch(Exception e) {
     // If check fails, skip applying to avoid build-time failure
-    print("FCMPlugin: Unable to check for google-services.json; skipping apply to avoid build failure.")
+    print("FCMPlugin: Unable to check for google-services.json or project name; skipping apply to avoid build failure.")
 }
