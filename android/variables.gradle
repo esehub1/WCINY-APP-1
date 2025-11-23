@@ -13,4 +13,6 @@ ext {
     androidxJunitVersion = '1.2.1'
     androidxEspressoCoreVersion = '3.6.1'
     cordovaAndroidVersion = '10.1.1'
+    ANDROID_FCM_VERSION = '21.0.0'
+    ANDROID_FIREBASE_BOM_VERSION = '26.0.0'
 }
