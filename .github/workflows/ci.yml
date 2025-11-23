@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Chromium for headless tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run unit tests (Karma)
+        run: npm run test:legacy -- --watch=false --browsers=ChromeHeadless
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
+
+      - name: Build (legacy)
+        run: npm run build:legacy --silent
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider

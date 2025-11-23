@@ -1,3 +1,33 @@
+# Developer environment notes (legacy)
+
+This project currently uses a legacy Angular 9 toolchain. The repository includes short-term compatibility shims so contributors can run the dev server, tests and builds locally while we stage a longer-term upgrade.
+
+Recommended Node version
+- Use Node 18 (LTS) for CI. If you use Node 20 locally, several tools require the OpenSSL legacy provider.
+
+Local commands
+- Start dev server (uses OpenSSL legacy provider on Node 20):
+```powershell
+npm run start:legacy
+```
+
+- Run unit tests once (Karma, headless in CI):
+```powershell
+npm run test:legacy
+```
+
+- Build for production (legacy build):
+```powershell
+npm run build:legacy
+```
+
+Notes
+- Scripts `start:legacy`, `test:legacy`, and `build:legacy` set `NODE_OPTIONS=--openssl-legacy-provider` via `cross-env` so the older Angular/Webpack toolchain runs on Node 20+.
+- The repository includes `src/.disc/.placeholder` and `angular.json` is configured to copy `src/.disc` into build outputs (e.g. `dist/.disc`).
+- Some local fixes are temporary (for example, a node_modules patch applied earlier). These will be removed as we upgrade the toolchain.
+
+CI
+- A GitHub Actions workflow is provided in `.github/workflows/ci.yml` that runs on Node 18 and executes the legacy test/build steps.
 # Development environment (recommended)
 
 Recommended Node.js version: 18.x (LTS)
