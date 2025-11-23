@@ -14,10 +14,28 @@ buildscript {
             def DEFAULT_STYLE = "${(char)27}[39;49"+"m"
             print(WARNING_STYLE+"FCMPlugin: Plugin install variables are not accessible, as package.json was unreachable/unreadable."+DEFAULT_STYLE)
         }
-        ANDROID_GRADLE_TOOLS_VERSION = System.getenv('ANDROID_GRADLE_TOOLS_VERSION') ?: rootProject.hasProperty('ANDROID_GRADLE_TOOLS_VERSION') ? rootProject.ext.ANDROID_GRADLE_TOOLS_VERSION : PLUGIN_CONFIG.hasProperty("ANDROID_GRADLE_TOOLS_VERSION") ? PLUGIN_CONFIG.ANDROID_GRADLE_TOOLS_VERSION : null ?: '3.5.3'
-        ANDROID_GOOGLE_SERVICES_VERSION = System.getenv('ANDROID_GOOGLE_SERVICES_VERSION') ?: rootProject.hasProperty('ANDROID_GOOGLE_SERVICES_VERSION') ? rootProject.ext.ANDROID_GOOGLE_SERVICES_VERSION : PLUGIN_CONFIG.hasProperty("ANDROID_GOOGLE_SERVICES_VERSION") ? PLUGIN_CONFIG.ANDROID_GOOGLE_SERVICES_VERSION : null ?: '4.3.3'
+        // Resolve versions: environment -> rootProject ext -> plugin config -> safe default
+        ANDROID_GRADLE_TOOLS_VERSION = System.getenv('ANDROID_GRADLE_TOOLS_VERSION') ?: (rootProject.hasProperty('ANDROID_GRADLE_TOOLS_VERSION') ? rootProject.ext.ANDROID_GRADLE_TOOLS_VERSION : (PLUGIN_CONFIG?.hasProperty("ANDROID_GRADLE_TOOLS_VERSION") ? PLUGIN_CONFIG.ANDROID_GRADLE_TOOLS_VERSION : null)) ?: '8.0.2'
+        ANDROID_GOOGLE_SERVICES_VERSION = System.getenv('ANDROID_GOOGLE_SERVICES_VERSION') ?: (rootProject.hasProperty('ANDROID_GOOGLE_SERVICES_VERSION') ? rootProject.ext.ANDROID_GOOGLE_SERVICES_VERSION : (PLUGIN_CONFIG?.hasProperty("ANDROID_GOOGLE_SERVICES_VERSION") ? PLUGIN_CONFIG.ANDROID_GOOGLE_SERVICES_VERSION : null)) ?: '4.4.0'
 
-        ext.gradleNumberVersion = ANDROID_GRADLE_TOOLS_VERSION.substring(0, ANDROID_GRADLE_TOOLS_VERSION.lastIndexOf(".")).toFloat()
+        // Parse a numeric major.minor float from the AGP version string safely (e.g. "8.0.2" -> 8.0f)
+        try {
+            def gradVerStr = '8.0'
+            if (ANDROID_GRADLE_TOOLS_VERSION && ANDROID_GRADLE_TOOLS_VERSION.indexOf('.') > -1) {
+                def parts = ANDROID_GRADLE_TOOLS_VERSION.tokenize('.')
+                if (parts.size() >= 2) {
+                    gradVerStr = parts[0] + '.' + parts[1]
+                } else {
+                    gradVerStr = ANDROID_GRADLE_TOOLS_VERSION
+                }
+            } else if (ANDROID_GRADLE_TOOLS_VERSION) {
+                gradVerStr = ANDROID_GRADLE_TOOLS_VERSION
+            }
+            ext.gradleNumberVersion = gradVerStr.toFloat()
+        } catch(Exception e) {
+            // Fallback to a safe numeric value if parsing fails
+            ext.gradleNumberVersion = 8.0f
+        }
     }
     repositories {
         mavenCentral()
