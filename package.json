@@ -16,7 +16,8 @@
     "test": "ng test",
     "test:legacy": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng test --watch=false",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "postinstall": "node ./scripts/patch-android.js"
   },
   "private": true,
   "dependencies": {
